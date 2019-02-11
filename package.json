@@ -1,0 +1,11 @@
+{
+  "name": "calc-rpn",
+  "version": "0.0.1",
+  "description": "Calc reverse polish notation.",
+  "main": "index.js",
+  "author": "Yuto Kawamoto",
+  "license": "MIT",
+  "scripts": {
+    "test": "node ./test.js"
+  }
+}
