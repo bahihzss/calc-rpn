@@ -1,27 +1,48 @@
-const { calc, toStandardFormula } = require('./index.js')
+const assert = require('assert')
+const { describe, it } = require('mocha')
 
-// 1 2 + 3 * => (1 + 2) * 3 = 9
-console.log(calc('1 2 + 3 *'))
+const { calc, standardization } = require('./index.js')
 
-// 1 2 + 3 4 + * => (1 + 2) * (3 + 4) = 21
-console.log(calc('1 2 + 3 4 + *'))
+describe('Normal operations', () => {
+  it('1 2 + 3 * => (1 + 2) * 3 = 9', () => {
+    assert.strictEqual(calc('1 2 + 3 *'), 9)
+  })
 
-// 1 2 + 3 + 4 * => (1 + 2 + 3) * 4 = 24
-console.log(calc('1 2 + 3 + 4 *'))
+  it('1 2 + 3 4 + * => (1 + 2) * (3 + 4) = 21', () => {
+    assert.strictEqual(calc('1 2 + 3 4 + *'), 21)
+  })
 
-// Few operator 1 2 + 3 4 +
-try {
-  calc('1 2 + 3 4 +')
-} catch (e) {
-  console.log(e.message)
-}
+  it('1 2 + 3 + 4 * => (1 + 2 + 3) * 4 = 24', () => {
+    assert.strictEqual(calc('1 2 + 3 + 4 *'), 24)
+  })
 
-// Too much operator 1 2 + 3 * +
-try {
-  calc('1 2 + 3 * +')
-} catch (e) {
-  console.log(e.message)
-}
+  it('Convert to standard formula', () => {
+    assert.strictEqual(standardization('1 2 + 3 + 4 *'), '(1 + 2 + 3) * 4')
+  })
+})
 
-// 1 2 + 3 + 4 * => (1 + 2 + 3) * 4
-console.log(toStandardFormula('1 2 + 3 + 4 *'))
+describe('Abnormal operations', () => {
+  it('Few operator 1 2 + 3 4 +', () => {
+    try {
+      calc('1 2 + 3 4 +')
+    } catch (e) {
+      assert.strictEqual(e.message, 'Error: Invalid Format (Few operator.)')
+    }
+  })
+
+  it('Too much operator 1 2 + 3 * +', () => {
+    try {
+      calc('1 2 + 3 * +')
+    } catch (e) {
+      assert.strictEqual(e.message, 'Error: Invalid Format (Operator is too much.)')
+    }
+  })
+
+  it('Invalid element a 2 + 3 * +', () => {
+    try {
+      calc('a 2 + 3 * +')
+    } catch (e) {
+      assert.strictEqual(e.message, 'Error: Invalid element \'a\'')
+    }
+  })
+})

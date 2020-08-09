@@ -6,6 +6,11 @@
   "author": "Yuto Kawamoto",
   "license": "MIT",
   "scripts": {
-    "test": "node ./test.js"
+    "test": "mocha ./test.js"
+  },
+  "devDependencies": {
+    "assert": "^2.0.0",
+    "mocha": "^8.1.1",
+    "nyc": "^15.1.0"
   }
 }

@@ -1,124 +1,93 @@
-module.exports = class RPN {
-  constructor (formula) {
-    this.stack = []
-    this.formula = formula
-    this.operators = ['+', '-', '/', '*', '^', '%']
-    this.previosOperator = null
+class RPN {
+  constructor (operators = null) {
+    this._operators = operators || ['+', '-', '/', '*', '^', '%']
   }
 
   /**
-   * 逆ポーランド記法の計算式を計算して結果を返す
-   * もし、不正な形式だった場合はnullを返す
+   * Split elements and collect clause elements.
+   * Then pass the clause elements into callback.
    *
-   * @return {Number, null}
+   * @param formula {String}
+   * @param callback {Function}
+   * @returns {*}
+   * @private
    */
-  calc () {
-    this.getElements().forEach(element => {
-      if (!this.isOperator(element)) {
-        this.stack.push(element)
-      } else {
-        let sub;
+  _calc (formula, callback) {
+    const elements = formula.split(' ')
 
-        if (this.stack.length < 2) {
-          throw new Error('Error: Invalid Format (Operator is too much.)')
-        }
-
-        const el1 = this.spliceLastElement()
-        const el2 = this.spliceLastElement()
-
-        eval(`sub = ${el1} ${element} ${el2}`)
-
-        this.stack.push(sub)
+    const stack = elements.reduce((stack, element) => {
+      if (!this._operators.includes(element)) {
+        if (!/^\d+$/.test(element)) throw Error(`Error: Invalid element '${element}'`)
+        return stack.concat([element])
       }
-    })
 
-    if (this.stack.length !== 1) {
+      if (stack.length < 2) {
+        throw new Error('Error: Invalid Format (Operator is too much.)')
+      }
+
+      const el1 = stack.splice(-1, 1)[0]
+      const el2 = stack.splice(-1, 1)[0]
+      const sub = callback(el1, el2, element)
+
+      return stack.concat([sub])
+    }, [])
+
+    if (stack.length !== 1) {
       throw new Error('Error: Invalid Format (Few operator.)')
     }
 
-    return this.stack[0]
+    return stack[0]
+  }
+
+  calc (formula) {
+    return this._calc(formula, this._eval)
   }
 
   /**
-   * 逆ポーランド記法を要素毎に分けたものを配列に格納して返す
-   *
-   * @returns {*|string[]}
-   */
-  getElements () {
-    return this.formula.split(' ')
-  }
-
-  /**
-   * 任意の要素が演算子かどうかを返す
-   *
-   * @param {Number, String} element
-   * @returns {boolean}
-   */
-  isOperator(element) {
-    return this.operators.includes(element)
-  }
-
-  /**
-   * スタックから最後の要素を抜き出す
-   *
+   * Evaluate a clause.
+   * 
+   * @param el1 {String}
+   * @param el2 {String}
+   * @param operator {String}
    * @returns {Number}
+   * @private
    */
-  spliceLastElement() {
-    return this.stack.splice(this.stack.length - 1, 1)[0]
+  _eval (el1, el2, operator) {
+    return eval(`${el1} ${operator} ${el2}`)
   }
 
   /**
-   * 一般的な記法の計算式を返す
+   * Returns the standard notation formula.
    *
+   * @param formula {String}
    * @returns {String}
    */
-  toStandardFormula() {
-    this.getElements().forEach(element => {
-      if (!this.isOperator(element)) {
-        this.stack.push(element)
-      } else {
-        if (this.stack.length < 2) {
-          throw new Error('Error: Invalid Format (Operator is too much.)')
-        }
-
-        const el1 = this.spliceLastElement()
-        const el2 = this.spliceLastElement()
-
-        this.stack.push(RPN.getClause(el1, el2, element))
-
-        this.previosOperator = element
-      }
-    })
-
-    if (this.stack.length !== 1) {
-      throw new Error('Error: Invalid Format (Few operator.)')
-    }
-
-    return this.stack[0]
+  standardization (formula) {
+    return this._calc(formula, this._stringify)
   }
 
   /**
-   * 項を返す。
-   * ＋・ーの場合は括弧を付加する
+   * Returns the clause.
    *
-   * @param el1
-   * @param el2
-   * @param operator
-   * @returns {string}
+   * @param el1 {String}
+   * @param el2 {String}
+   * @param operator {String}
+   * @returns {String}
    */
-  static getClause(el1, el2, operator) {
-    return ['+', '-'].includes((operator))
+  _stringify (el1, el2, operator) {
+    el1 = el1.replace(/\((\d+ [+-] \d+)\)/, '$1')
+    el2 = el2.replace(/\((\d+ [+-] \d+)\)/, '$1')
+
+    return /^[+-]$/.test(operator)
       ? `(${el2} ${operator} ${el1})`
       : `${el2} ${operator} ${el1}`
   }
 }
 
-module.exports.calc = function(formula) {
-  const calculator = new RPN(formula)
-  return calculator.calc()
+module.exports.calc = function (formula) {
+  return new RPN().calc(formula)
 }
 
-module.exports.toStandardFormula = function(formula) {
-  const calculator = new RPN(formula)
-  return calculator.toStandardFormula()
+module.exports.standardization = function (formula) {
+  return new RPN().standardization(formula)
 }
