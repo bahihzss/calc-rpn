@@ -45,7 +45,7 @@ class RPN {
 
   /**
    * Evaluate a clause.
-   * 
+   *
    * @param el1 {String}
    * @param el2 {String}
    * @param operator {String}
@@ -75,12 +75,12 @@ class RPN {
    * @returns {String}
    */
   _stringify (el1, el2, operator) {
-    el1 = el1.replace(/\((\d+ [+-] \d+)\)/, '$1')
-    el2 = el2.replace(/\((\d+ [+-] \d+)\)/, '$1')
+    el1 = el1.replace(/^\((\d+ [+-] \d+)\)$/, '$1')
+    el2 = el2.replace(/^\((\d+ [+-] \d+)\)$/, '$1')
 
-    return /^[+-]$/.test(operator)
-      ? `(${el2} ${operator} ${el1})`
-      : `${el2} ${operator} ${el1}`
+    const clause = `${el2} ${operator} ${el1}`
+
+    return /^[+-]$/.test(operator) ? `(${clause})` : clause
   }
 }
 
